@@ -129,7 +129,7 @@ void Calc_@(pre)frc_sigmoid_DIM@(DIM)_VL@(VLEN)
       // load Vxj 
    @iexp i 0
    @iwhile i < @(rdim)
-      BCL_vld(Vxj@(i), Xi+VLEN*@(i)); 
+      BCL_vld(Vxj@(i), Xj+VLEN*@(i)); 
       @iexp i @(i) 1 +
    @endiwhile
       // init Vatt  
