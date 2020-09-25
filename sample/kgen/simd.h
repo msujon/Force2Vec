@@ -11,6 +11,7 @@
    /*#define BLC_ARM_ASIMD */
    /*#define BLC_ARM_NEON */
 /*#define BLC_POWER_VSX */
+#ifndef BLC_ARCH
 #define BLC_X86   
    /*#define BLC_AVXZ*/ 
    #define BLC_AVX2
@@ -19,6 +20,7 @@
    /* #define BLC_SSE4_1 */
    /* #define BLC_SSE3 */
    /* #define BLC_SSE1 */
+#endif
  /*
   *   inst format: inst(dist, src1, src2)
   */
@@ -234,7 +236,8 @@
            s0_ = _mm256_permute2f128_ps(s0_, s0_, 0x20); \
             /*{s0a-d,s0a-d,s0a-d,s0a-d,s0a-d,s0a-d,s0a-d,s0a-d}*/\
            BCL_vadd(s0_, s0_, t1_); \
-           d_ = _mm256_cvtss_f32(t1_); \
+           /*d_ = _mm256_cvtss_f32(s0_); \*/\
+           d_ = s0_[0]; \
       	 }
       #endif
 /*
