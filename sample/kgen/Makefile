@@ -18,7 +18,7 @@ ifeq ($(force), s)
    frout=frc_sigmoid
 endif 
 
-kdir=.
+kdir=./kernels
 
 all: $(kdir)/g$(pre)$(frout)_D$(dim).c  
 

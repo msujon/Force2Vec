@@ -8,7 +8,7 @@
 #define DREAL 1
 @PRE !
 #define INDEXTYPE int 
-#include "simd.h"
+#include "../simd.h"
 @define pre @@(@pre)@
 @SKIP ******** dim must be multiple of VLEN ***** 
 @ifdef ! DIM 
@@ -30,6 +30,44 @@
 @iif kk ! DIM
    @abort "DIM=@(DIM) must be multiple of VLEN=@(VLEN)"
 @endiif 
+@SKIP **************** binary tree reduction *******************************
+@BEGINPROC BinReduce V_
+@define i @dum@
+@define j @dum@
+@define k @dum@
+@define i1 @dum@
+@define i2 @dum@
+@define nn @dum@
+         // binary tree reduction 
+@iexp j 1 
+@iexp i 1 
+@iwhile i < @(rdim)
+   @iexp j @(j) 2 *
+   @skip ---- nn = (N+j-1)/j  /* NOTE: the order of 1st op in postfix!! */
+         @iexp nn @(rdim) @(j) + -1 +
+         @iexp nn @(j) @(nn) /
+   @iexp k 0
+   @iwhile k < @(nn)
+      @SKIP ---- i1 = k * (i+i)
+      @iexp i1 @(i) @(i) + 
+      @iexp i1 @(i1) @(k) *
+      @iexp i2 @(i1) @(i) + 
+      @iif i2 < rdim
+         BCL_vadd(@(V_)@(i1), @(V_)@(i1), @(V_)@(i2));
+      @endiif
+      @iexp k @(k) 1 + 
+   @endiwhile
+   @iexp i @(i) 2 *
+@endiwhile
+
+@undef nn 
+@undef i2 
+@undef i1 
+@undef k 
+@undef j 
+@undef i 
+@endproc
+@SKIP **********************************************************************
 @ROUT frc_tdist
 /* frc_tdist : t-distribution + negative sampling : NS */
 /* void algorithms::Calc_@(pre)frc_tdist_DIM@(DIM)_VL@(VLEN) */
@@ -159,12 +197,15 @@ void Calc_@(pre)frc_sigmoid_DIM@(DIM)_VL@(VLEN)
       @iexp i @(i) 1 +
    @endiwhile
 @ROUT !
-      // reduce Vatt: FIXME: use logN tree reduction
+@BEGINSKIP
+      // reduce Vatt
    @iexp i 1
    @iwhile i < @(rdim)
       BCL_vadd(Vatt0, Vatt0, Vatt@(i));
       @iexp i @(i) 1 +
    @endiwhile
+@ENDSKIP
+      @callproc BinReduce Vatt
       BCL_vrsum1(attrc, Vatt0);
    
 @ROUT frc_tdist
@@ -280,12 +321,15 @@ void Calc_@(pre)frc_sigmoid_DIM@(DIM)_VL@(VLEN)
       @iexp i @(i) 1 +
    @endiwhile
 @ROUT !
-      // reduce Vrep: FIXME: use logN tree reduction
+@BEGINSKIP
+      // reduce Vrep
    @iexp i 1
    @iwhile i < @(rdim)
       BCL_vadd(Vrep0, Vrep0, Vrep@(i));
       @iexp i @(i) 1 +
    @endiwhile
+@ENDSKIP
+      @callproc BinReduce Vrep
       BCL_vrsum1(repuls, Vrep0);
 @ROUT frc_tdist 
       BCL_vset1(Vrep0, repuls); // a = a
