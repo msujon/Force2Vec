@@ -64,6 +64,7 @@ done
 
 
 mkdir -p bin 
+mkdir -p lib 
 mkdir -p generated 
 mkdir -p generated/src 
 mkdir -p generated/include 
