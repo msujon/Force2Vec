@@ -1,28 +1,22 @@
-This is the README file for kernel generator. If you want to generate kernels
-to calculate attractive and repulsive forces based on t-distribution and/or 
-sigmoid, you can use this generator. 
+This is the README file for the library generator. 
+Use the script file rungen.sh to generate any library.
 
-Make variables: 
+It has two phases: 
+   1. Tuning phase: When you want to find best K (dim) for register blocking, 
+      use k as compile time or kruntime=0. Based on the value SDIM 
+      (starting dimension), EDIM (ending dimension) and VLEN (SIMD width), 
+      it will generate kernels, header and makefile for compile-time K 
+      (without any rolled loop). 
+   
+   sample command (for AVX512): 
+      ./rungen.sh -p s -v 16 -s 16 -e 256 -i 64 -t 18 -r bacrb -k 0
 
-force = [t,s] : to generate kernel based on t-distribution, use make force=t
-                to generate kernel based on sigmoid, use make force=s
+   2. Kruntime: To make it work for all K (dim), use bestK value (found from 
+      tuning) and use kruntime=1 to create the library. It will generate unrolled
+      kernels for K < bestK and partial unrolled (upto bestK) for all K > bestK
 
-vlen = [D]    : to set SIMD width, use vlen. Please see simd.h file to get 
-                different values of vlen on different architectures. 
-dim = [D]     : to set dimension,  use dim and it should be multiple of vlen. 
-pre = [s,d]   : to set precision of the kernel as single precision floating point
-                use pre=s. For double precision, use pre=d  
+   sample command (for AVX512): 
+      ./rungen.sh -p s -v 16 -s 16 -e 256 -i 64 -t 18 -r bacrb -k 1 -b 128 
 
-Please note that you will need simd.h file to compile these kernels. It is a 
-wrapper and contains all system specific implementations. 
+Please run ./rungen.sh --help to get idea about all options.  
 
-simd.h : currently supports following SIMD intrinsics: 
-	 1. AVX512, AVX2, AVX, SSE4.1, SSE3, SSE1 in X86, 
-	 2. ASIMD,NEON in ARM64, and 
-	 3. VSX in OpenPOWER. 
-
-To compile, provide appropriate compiler flags for the system, e.g.,: 
-	AVX2: gcc -mavx -mfma -c gdfrc_tdist_D32.c 
-
-rungen.sh : This script file can be use to generate kernels in a range of values 
-of dimension. Please use the command "./rungen.sh --help" to see all the options.  
